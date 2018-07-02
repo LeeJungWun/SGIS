@@ -1,0 +1,349 @@
+	#header	
+	{
+		width:100%; 
+		height:100px;
+			margin:auto;
+			}
+	#map{
+		width:90%; 
+		height:480px; 
+		margin: 0 auto; 
+	}
+	#all_div{
+	width:80%;
+	height:768px;
+	margin:0 auto; 
+	/*border:1px solid blue;*/
+	}
+	#all_div_inner{
+	width:95%;
+	height:768px;
+	margin:0 auto; 
+	/*border:1px solid red;*/
+	
+	}
+	#left_div{
+	    width:200px;
+		height:100%;
+		float:left;
+		/*border:1px solid yellow;*/
+	}
+	#center_div{
+	   width:50%;
+		float:left;
+		/*border:1px solid yellow;*/
+		margin-top: 12px;
+		margin: 12 auto; 
+	}
+	#side{
+		width:100%;
+	}
+
+	#center_up_div{
+		width:95%;
+		margin: 0 auto; 
+	}
+
+	#center_down_div{
+		float:left;
+		width:95%;
+		margin: 0 auto; 
+	}
+
+	#right_div{
+	width:26%;
+	height:100%;
+	float:left;
+	margin:0 0 0 auto;
+	/*border:1px solid #00ff00;*/
+	}
+   
+	#Logo { 
+	width:200px;
+	float:left;
+	padding: 20px;}   
+	
+	#rage1{
+			width: 10px;
+			height: 10px;
+			background: #ffddd7;}
+			
+	#rage2{
+			width: 10px;
+			height: 10px;
+			background: #ffb2a5;}
+			
+	#rage3{
+			width: 10px;
+			height: 10px;
+			background: #ff806c;}
+			
+	#rage4{
+			width: 10px;
+			height: 10px;
+			background: #ff593f;}
+			
+	#rage5{
+			width: 10px;
+			height: 10px;
+			background: #ff2400;}
+
+/* ����ġ CSS ����
+*/
+/*��� ��ư CSS ���� */
+.switch {
+	position: relative;
+	display: block;
+	vertical-align: bottom;
+	width: 200px;
+	height: 50px;
+	padding: 300px;
+	margin: 0 10px 10px 0;
+	background: linear-gradient(to bottom, #eeeeee, #FFFFFF 25px);
+	background-image: -webkit-linear-gradient(top, #eeeeee, #FFFFFF 25px);
+	border-radius: 18px;
+	box-shadow: inset 0 -1px white, inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	cursor: pointer;
+}
+.switch-input {
+	position: absolute;
+	top: 0;
+	width:300px
+	left: 0;
+	opacity: 0;
+}
+.switch-label {
+	position: relative;
+	display: block;
+	height: inherit;
+	font-size: 18px;
+	text-transform: uppercase;
+	background: #eceeef;
+	border-radius: inherit;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 0 2px rgba(0, 0, 0, 0.15);
+}
+.switch-label:before, .switch-label:after {
+	position: absolute;
+	top: 50%;
+	margin-top: -.5em;
+	line-height: 1;
+	-webkit-transition: inherit;
+	-moz-transition: inherit;
+	-o-transition: inherit;
+	transition: inherit;
+}
+.switch-label:before {
+	content: attr(data-off);
+	right: 11px;
+	color: #000000;
+	text-shadow: 0 1px rgba(255, 255, 255, 0.5);
+}
+.switch-label:after {
+	content: attr(data-on);
+	left: 11px;
+	color: #FFFFFF;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2);
+	opacity: 0;
+}
+.switch-input:checked ~ .switch-label {
+	background: #E1B42B;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(0, 0, 0, 0.2);
+}
+.switch-input:checked ~ .switch-label:before {
+	opacity: 0;
+}
+.switch-input:checked ~ .switch-label:after {
+	opacity: 1;
+}
+
+.switch-input:checked ~ .switch-handle {
+	left: 74px;
+	box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+ 
+/* Transition
+========================== */
+.switch-label, .switch-handle {
+	transition: All 0.01s ease;
+	-webkit-transition: All 0.01s ease;
+	-moz-transition: All 0.01s ease;
+	-o-transition: All 0.01s ease;
+}
+/* Switch Slide
+==========================*/
+.switch-slide {
+	padding: 0;
+	margin: 15px 0 0 20px;
+	background: #FFF;
+	border-radius: 0;
+	background-image: none;
+
+}
+.switch-slide .switch-label {
+	box-shadow: none;
+	background: none;
+	overflow: hidden;
+}
+.switch-slide .switch-label:after, .switch-slide .switch-label:before {
+	width:200px;
+	height: 50px;
+	top: 5px;
+	left: 0;
+	text-align: center;
+	padding-top: 10%;
+	margin: 2 auto; 
+	box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 0 3px rgba(0, 0, 0, 0.1);
+}
+.switch-slide .switch-label:after {
+	color: #FFFFFF;
+	background: #87CEEB;
+		margin: 2 auto; 
+}
+.switch-slide .switch-label:before {
+	background: #eceeef;
+		margin: 2 auto; 
+}
+.switch-slide .switch-handle {
+	display: none;
+}
+.switch-slide .switch-input:checked ~ .switch-label {
+	background: #FFF;
+	border-color: #0088cc;
+}
+.switch-slide .switch-input:checked ~ .switch-label:before {
+	left: 0px;
+}
+.switch-slide .switch-input:checked ~ .switch-label:after {
+	left: 0px;
+}
+/*��� ��ư CSS ���� */
+/*���� ��ư CSS ���� */
+.switchRED {
+	position: relative;
+	display: block;
+	vertical-align: bottom;
+	width: 200px;
+	height: 50px;
+	padding: 300px;
+	margin: 0 10px 10px 0;
+	background: linear-gradient(to bottom, #eeeeee, #FFFFFF 25px);
+	background-image: -webkit-linear-gradient(top, #eeeeee, #FFFFFF 25px);
+	border-radius: 18px;
+	box-shadow: inset 0 -1px white, inset 0 1px 1px rgba(0, 0, 0, 0.05);
+	cursor: pointer;
+}
+.switchRED-input {
+	position: absolute;
+	top: 0;
+	width:300px
+	left: 0;
+	opacity: 0;
+}
+.switchRED-label {
+	position: relative;
+	display: block;
+	height: inherit;
+	font-size: 18px;
+	text-transform: uppercase;
+	background: #eceeef;
+	border-radius: inherit;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.12), inset 0 0 2px rgba(0, 0, 0, 0.15);
+}
+.switchRED-label:before, .switchRED-label:after {
+	position: absolute;
+	top: 50%;
+	margin-top: -.5em;
+	line-height: 1;
+	-webkit-transition: inherit;
+	-moz-transition: inherit;
+	-o-transition: inherit;
+	transition: inherit;
+}
+.switchRED-label:before {
+	content: attr(data-off);
+	right: 11px;
+	color: #000000;
+	text-shadow: 0 1px rgba(255, 255, 255, 0.5);
+}
+.switchRED-label:after {
+	content: attr(data-on);
+	left: 11px;
+	color: #FFFFFF;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2);
+	opacity: 0;
+}
+.switchRED-input:checked ~ .switchRED-label {
+	background: #E1B42B;
+	box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15), inset 0 0 3px rgba(0, 0, 0, 0.2);
+}
+.switchRED-input:checked ~ .switchRED-label:before {
+	opacity: 0;
+}
+.switchRED-input:checked ~ .switchRED-label:after {
+	opacity: 1;
+}
+
+.switchRED-input:checked ~ .switchRED-handle {
+	left: 74px;
+	box-shadow: -1px 1px 5px rgba(0, 0, 0, 0.2);
+}
+ 
+/* Transition
+========================== */
+.switchRED-label, .switchRED-handle {
+	transition: All 0.01s ease;
+	-webkit-transition: All 0.01s ease;
+	-moz-transition: All 0.01s ease;
+	-o-transition: All 0.01s ease;
+}
+/* Switch Slide
+==========================*/
+.switchRED-slide {
+	padding: 0;
+	margin: 15px 0 0 20px;
+	background: #FFF;
+	border-radius: 0;
+	background-image: none;
+}
+.switchRED-slide .switchRED-label {
+	box-shadow: none;
+	background: none;
+	overflow: hidden;
+}
+.switchRED-slide .switchRED-label:after, .switchRED-slide .switchRED-label:before {
+	width: 100%;
+	height: 65%;
+	top: 5px;
+	left: 0;
+	text-align: center;
+	padding-top: 10%;
+	box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.2), inset 0 0 3px rgba(0, 0, 0, 0.1);
+}
+.switchRED-slide .switchRED-label:after {
+	color: #FFFFFF;
+	background: #87CEEB;
+}
+.switchRED-slide .switchRED-label:before {
+	background: #eceeef;
+}
+.switchRED-slide .switchRED-handle {
+	display: none;
+}
+.switchRED-slide .switchRED-input:checked ~ .switchRED-label {
+	background: #FFF;
+	border-color: #0088cc;
+}
+.switchRED-slide .switchRED-input:checked ~ .switchRED-label:before {
+	left: 0px;
+}
+.switchRED-slide .switchRED-input:checked ~ .switchRED-label:after {
+	left: 0px;
+}
+/*���� ��ư CSS ���� */
+.menuSelectBar1{
+			width: 100%;
+			height: 768px;
+			/*background: #fffff0;*/
+			}
+
+

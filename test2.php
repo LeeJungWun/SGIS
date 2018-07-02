@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SOP JavaScript Unit TEST: Service population</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script type="text/javascript" src="https://sgisapi.kostat.go.kr/OpenAPI3/auth/javascriptAuth?consumer_key=590a2718c58d41d9ae3b"></script>
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.11.1.min.js"></script>
+</head>
+<style type="text/css">
+	#divCon {
+		margin: 5px 0;
+		width: 660px;
+		height: 160px;
+		overflow-x:hidden;
+		overflow-y:auto;
+		border: 2px dotted #3388ff;
+	}
+
+</style>
+<body>
+<div id="map" style="width:100%;height:800px"></div>
+<button id="addArea" onclick="javascript:doReqPopulation();">인구통계조회</button>
+<button id="marker" onclick="javascript:doCreateMarker();">마커생성</button>
+<button id="removeMarker" onclick="javascript:doRemoveMarker();">마커제거</button>
+<button id="clear" onclick="javascript:doClear();">지도초기화</button>
+
+<script type="text/javascript">
+
+	$(document).ready(function () {
+		createMap();	//지도생성
+		reqOpenApiBoundaryHadmarea("22", "2013", "1"); //대구광역시 경계호출 (22: 대구광역시코드, 2013:최신경계년도, "1": 하위경계단계)
+		
+	});
+	
+	var map = null;				//지도객체
+	var mapOptions = null; 		//지도생성 옵션
+	var accessToken = null; 	//엑세스토큰
+	var marker = null; 			//마커객체
+	var geojson = null; 		//경계정보	
+	var data = []; 				//통계정보
+	var valPerSlice = [];		//범례기준정보 
+	var legendValue = [];		//범례정보
+	
+	//지도생성
+	var createMap = function() {
+		mapOptions = {
+			ollehTileLayer: true,
+			measureControl: false,
+			zoomSliderControl: false,
+			panControl: false,
+			attributionControl: false
+		};
+
+		map = sop.map("map", mapOptions);
+		map.setView([1096230, 1759759], 5);
+	};
+	
+	//인구통계정보를 요청한다.
+	var doReqPopulation = function() {
+		reqOpenApiPopulation("22", successCallback);	//대구광역시 인구통계정보요청 
+		function successCallback(tmpData) {
+			data = tmpData;
+			for (var i=0; i<data.length; i++) {
+				data[i]["showData"] = "corp_cnt";	// 통계데이터 중 화면에 표출한 정보 파라미터명			// 표출정보 단위
+			}
+			reqOpenApiBoundaryHadmarea("22", "2013", "1");
+		}
+	};
+	
+	//마커를 생성한다.
+	var doCreateMarker = function() {
+		marker = sop.marker([1096230, 1759759]); //마커 생성
+		marker.addTo(map); //지도에 마커 추가
+	};
+	
+	//마커를 삭제한다.
+	var doRemoveMarker = function() {
+		if (marker != null) {
+			map.removeLayer(marker);
+		}
+	};
+	
+	//초기화한다.
+	var doClear = function() {
+		doRemoveMarker();
+		reqOpenApiBoundaryHadmarea("22", "2013", "1");
+		map.setView([1096230, 1759759], 5);
+	}; 
+	
+	//경계설 설정한다.
+	var setPolygonGeojson = function(geoData) {
+		var type = "normal"; //일반경계일 경우
+		
+		//기존에 살아있는 경계를 지운다.
+		if (geojson) {
+			geojson.remove();
+			geojson = null;
+		}
+
+		// 경계데이터에 통계정보를 병합하고, 경계를 그린다.
+		if (data.length > 0) {					
+			type = "data"; //데이터가 있을경우 타입
+			geoData = combineStatsData(geoData);
+		}
+					
+		addPolygonGeojson(geoData, type);
+		data = [];	
+	};
+	
+	//지도경계를 그린다.
+	var addPolygonGeojson = function(geo, type) {
+		if (geojson != null) {
+			geojson.remove();
+		}
+		var tmpGeojson = sop.geoJson(geo, {
+			style : setPolygonGeoJsonStyle(type),
+			onEachFeature : function (feature, layer) {
+				setLayerColor(feature, layer);
+
+				//곙계의 이벤트를 설정한다.
+				layer.on({
+				
+					//mouseover 이벤트 : 경계에 마우스를 올렸을 때 호출
+					mouseover : function (e) {
+						var layer = e.target;
+						layer.setStyle({
+							weight : 3.5,
+							color : "#0086c6",
+							dashArray : layer.options.dashArray,
+							fillOpacity : layer.options.fillOpacity,
+							fillColor : layer.options.fillColor
+						});
+					
+						if (!sop.Browser.ie) {
+							layer.bringToFront();
+						}
+						
+						didMouseOverPolygon(e, feature, layer.options.type);
+						
+					},
+					
+					//mouseout 이벤트 : 경계에서 마우스가 벗어났을 때 호출
+					mouseout : function (e) {
+						var layer = e.target;
+						var color = "#666666";
+						var weight = 2.5;
+						
+						if (layer.options.type == "data") {
+							color = "white";
+						}
+						
+						layer.setStyle({
+							weight : weight,
+							color : color,
+							dashArray : layer.options.dashArray,
+							fillOpacity : layer.options.fillOpacity,
+							fillColor : layer.options.fillColor
+						});
+						
+						if (!sop.Browser.ie) {
+							layer.bringToBack();
+						}
+						
+						didMouseOutPolygon(e, feature, layer.options.type);
+					},
+					
+					//click 이벤트 : 경계를 선택했을 때 이벤트
+					click : function (e) {
+						var layer = e.target;
+						if (!sop.Browser.ie) {
+							layer.bringToFront();
+						}	
+
+						didSelectedPolygon(e, feature, layer.options.type);						
+					},
+							
+				});
+			},
+			type : type
+		});
+		console.log(tmpGeojson);
+		geojson = tmpGeojson;
+		geojson.addTo(map);
+	};
+	
+	//지도경계의 스타일을 지정한다.
+	var setPolygonGeoJsonStyle = function(type) {
+		var fillOpacity = 0;
+		var color = "#666666";
+		
+		//통계정보가 있을경우
+		if (type == "data") {
+			fillOpacity = 0.7;
+			color = "white";
+		}
+		
+		return {
+			weight : 2.5,
+			opacity : 1,
+			color : color,
+			dashArray: '3',
+			fillOpacity : fillOpacity,
+			fillColor : "white"
+		};
+	};
+	
+	
+	//각 경계별로 색상을 지정한다.
+	var setLayerColor = function(feature, layer) {
+		if (feature.info) {
+			for ( var x = 0; x < feature.info.length; x++) {
+				if (feature.info[x].showData) {
+					for (param in feature.info[x]) {
+						if (param == feature.info[x].showData) {
+							layer.setStyle({
+								weight : layer.options.weight,
+								color : layer.options.color,
+								dashArray : layer.options.dashArray,
+								fillOpacity : layer.options.fillOpacity,
+								fillColor : getColor(feature.info[x][param], valPerSlice)[0]
+							});
+							break;
+						}
+					}
+				}
+			}
+		}
+	};
+	
+	//통계정보를 지도경계에 병합한다.
+	var combineStatsData = function (boundData) {
+		for ( var k = 0; k < data.length; k++) {
+			for ( var i = 0; i < boundData.features.length; i++) {
+				var adm_cd = boundData.features[i].properties.adm_cd;
+					if (boundData.features[i].info == null) {
+						boundData.features[i]["info"] = [];
+					}
+							
+				if (data != null) {
+					for ( var x = 0; x < data.length; x++) {
+						for (key in data[x]) {
+							if (key == "adm_cd") {
+								if (adm_cd == data[x].adm_cd) {
+									data[x]["showData"] = data[k].showData;
+									data[x]["unit"] = data[k].unit;
+									boundData.features[i].info.push(data[x]);
+									break;
+								}
+								break;
+							}
+						}
+					}
+				}
+			}
+		}
+
+		//범례지정
+		setLegendForStatsData();
+		
+		return boundData;
+					
+	};
+	
+	//범례를 설정한다.
+	var setLegendForStatsData = function() {
+		var arData = new Array();
+		if (data.length > 0) {
+			var tmpData = new Array();
+			for ( var k = 0; k < data.length; k++) {
+				for (key in data[k]) {
+					if (key == data[k].showData) {
+						arData.push(parseFloat(data[k][key]));
+						break;
+					}
+				}			
+			}
+		}
+		valPerSlice = calculateLegend(arData);
+	};
+	
+	
+	//범례 색상을 가져온다.(범례는 5단계로 설정)
+	var getColor = function (value, valPerSlice) {
+		return value < valPerSlice[0] ? [ "#ffddd7", 1 ] : 
+			   value < valPerSlice[1] ? [ "#ffb2a5", 2 ] : 
+			   value < valPerSlice[2] ? [ "#ff806c", 3 ] : 
+			   value < valPerSlice[3] ? [ "#ff593f", 4 ] :
+				                        [ "#ff2400", 5 ];	
+		
+	};
+	
+	
+	//범례 알고리즘을 통해 범례 기준을 계산한다. 
+	var calculateLegend = function(arData) {	
+					
+		//균등분할방식				
+		legendValue.equal = [];
+
+		for ( var k = 0; k < arData.length; k++) {
+			var min = Math.min.apply(null, arData);
+			var max = Math.max.apply(null, arData);
+			var result = Math.round((min + max) / 5);
+			if (result == 0) {
+				result = 1;
+			}
+						
+			var tmpResult = new Array();
+			for ( var y = 1; y <= 5; y++) {
+				if (result == 1) {
+					tmpResult.push(result);
+				}else {
+					tmpResult.push(result * y);
+				}
+			}
+	
+			if (tmpResult.length < 5) {
+				for ( var x = 0; x < 5 - tmpResult.length; x++) {
+					tmpResult.push("");
+				}
+			}
+		}
+		
+		legendValue.equal = tmpResult;	
+		
+		return legendValue.equal;
+
+	};
+	
+	
+	//************************************************************************//
+	//********************** Map Control Start *******************************//
+	//************************************************************************//
+	
+	//mouse over callback
+	var didMouseOverPolygon = function(event, layer, type) {
+		var html = "<table style='margin:10px;'>";
+		if (type == "data") {
+			for (var i=0; i<layer.info.length; i++) {
+				if (layer.properties.adm_cd == layer.info[i].adm_cd) {
+					html += "<tr>";
+					html += "<td>" + layer.properties.adm_nm +"</td>";
+					html += "</tr>";
+					html += "<tr>";
+					html += "<td>" + layer.info[i][layer.info[i].showData] +" ("+layer.info[i].unit +")</td>";
+					html += "</tr>";
+					
+					break;
+				}
+			}
+		}else {
+			html += "<tr>";
+			html += "<td>" + layer.properties.adm_nm + "</td>";
+			html += "</tr>";
+		}
+		html += "</table>";
+		event.target.bindToolTip(html, {
+			direction: 'right',
+			noHide:true,
+			opacity: 1
+		}).addTo(map)._showToolTip(event);
+		
+	};
+	
+	//mouse out callback
+	var didMouseOutPolygon = function(event, layer, type) {
+	};
+	
+	//mouse click callback
+	var didSelectedPolygon = function(event, layer, type) {
+		if (type == "data") {
+			var adm_cd = layer.properties.adm_cd;
+			reqOpenApiPopulation(adm_cd, successCallback);
+			function successCallback(tmpData) {
+				data = tmpData;
+				for (var i=0; i<data.length; i++) {
+					data[i]["showData"] = "corp_cnt";	// 통계데이터 중 화면에 표출한 정보 파라미터명				// 표출정보 단위
+				}
+				reqOpenApiBoundaryHadmarea(adm_cd, "2013", "1");
+			};
+		
+			map.fitBounds(event.target.getBounds(), {
+				maxZoom : 7,
+				animate : true
+			});
+		}
+	};
+	
+	//************************************************************************//
+	//********************** Map Control End *********************************//
+	//************************************************************************//
+	
+	
+	//************************************************************************//
+	//********************** request functions Start *************************//
+	//************************************************************************//
+	
+	//OpenAPI를 사용하기 위한 accesstoken 정보를 요청한다.
+	var reqOpenAPIAuth = function(serviceId, secretKey, callback) {
+		$.ajax({
+			type: "GET",
+			url: "https://sgisapi.kostat.go.kr/OpenAPI3/auth/authentication.json",
+			data : {"consumer_key" : serviceId, "consumer_secret" : secretKey},
+			success: function(res) {
+				accessToken = res.result.accessToken;
+				callback.call(undefined, accessToken);
+			} ,
+			dataType: "json",
+			error:function(e){  
+			}  
+		});
+	};
+	
+	//인구통계정보를 요청한다.
+	var reqOpenApiPopulation = function(adm_cd, callback) {
+		reqOpenAPIAuth("590a2718c58d41d9ae3b", "ab7fe94f9fb64336abd3", success);
+		function success(accessToken) {
+			$.ajax({
+			type: "GET",
+			url: "https://sgisapi.kostat.go.kr/OpenAPI3/stats/company.json",
+			data : {"accessToken" : accessToken, "adm_cd" : adm_cd, "year" : "2010", "low_search" : 1, "area_type" : "0", "class_deg" : "9", "class_code" : "P", "bnd_year" : "2013"},
+			success: function(res) {
+				callback.call(undefined, res.result);
+			} ,
+			dataType: "json",
+			error:function(e){
+				data = [];
+			}  
+		});
+		} 
+	};
+	
+	//경계정보를 요청한다.
+	var reqOpenApiBoundaryHadmarea = function(adm_cd, year, low_search) {
+		reqOpenAPIAuth("590a2718c58d41d9ae3b", "ab7fe94f9fb64336abd3", success);
+		function success(accessToken) {
+			$.ajax({
+			type: "GET",
+			url: "https://sgisapi.kostat.go.kr/OpenAPI3/boundary/hadmarea.geojson",
+			data : {"accessToken" : accessToken, "adm_cd" : adm_cd, "year" : year, "low_search" : low_search},
+			success: function(res) {
+				setPolygonGeojson(res);
+			} ,
+			dataType: "json",
+			error:function(e){  
+			}  
+		});
+		} 
+	};
+	//************************************************************************//
+	//********************** request functions End ***************************//
+	//************************************************************************//
+	
+	
+	
+</script>
+</body>
+</html>
